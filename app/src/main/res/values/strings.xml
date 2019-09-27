@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Upskilling</string>
+    <string name="search_hint">Entrer un nom d\'artiste</string>
+    <string name="empty_search_result">Aucun resultat pour <b>%s</b></string>
+</resources>
