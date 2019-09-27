@@ -26,7 +26,7 @@ import com.rsoumail.upskilling.util.Api
 import kotlinx.android.synthetic.main.search_fragment.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class TrackSearchFragment() : BaseFragment() {
+class TrackSearchFragment : BaseFragment() {
 
     private val trackViewModel: TrackViewModel by viewModel()
 
