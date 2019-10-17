@@ -1,57 +1,41 @@
 package com.rsoumail.upskilling.ui.track
 
+import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-/*import androidx.databinding.DataBindingUtil
-import androidx.databinding.DataBindingComponent */
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.rsoumail.upskilling.R
-// import com.rsoumail.upskilling.databinding.TrackItemBinding
 import com.rsoumail.upskilling.domain.entity.Track
+import kotlinx.android.synthetic.main.track_item.view.*
 
 
 /**
  * A RecyclerView adapter for [Track] class.
  */
-class TrackListAdapter(private val tracks: List<Track>, val fragment: TrackSearchFragment) : RecyclerView.Adapter<TrackViewHolder>() {
-
+class TrackListAdapter(private val tracks: List<Track>, private val context: Context, private val clickListener: (Track) -> Unit) : RecyclerView.Adapter<TrackViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrackViewHolder {
-        val inflater = LayoutInflater.from(parent.context)
-        return TrackViewHolder(inflater, parent, fragment)
+        return TrackViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.track_item, parent, false), context)
     }
 
     override fun onBindViewHolder(holder: TrackViewHolder, position: Int) {
         val track: Track = tracks[position]
-        holder.bind(track)
+        holder.bind(track, clickListener)
     }
 
     override fun getItemCount(): Int = tracks.size
 }
 
+class TrackViewHolder(itemView: View, private val context: Context) : RecyclerView.ViewHolder(itemView) {
 
-class TrackViewHolder(inflater: LayoutInflater, parent: ViewGroup, val fragment: TrackSearchFragment) :
-    RecyclerView.ViewHolder(inflater.inflate(R.layout.track_item, parent, false)) {
-    private var thumbIV: ImageView? = null
-    private var titleTV: TextView? = null
-    private var artiistTV: TextView? = null
-
-
-    init {
-        thumbIV = itemView.findViewById(R.id.item_track_thumb)
-        titleTV = itemView.findViewById(R.id.title)
-        artiistTV = itemView.findViewById(R.id.artist)
-    }
-
-    fun bind(track: Track) {
-        titleTV?.text = track.trackName
-        artiistTV?.text = track.artistName
-       Glide.with(fragment)
+    fun bind(track: Track, clickListener: (Track) -> Unit) {
+        itemView.title.text = track.trackName
+        itemView.artist.text = track.artistName
+        Glide.with(context)
             .load(track.artworkUrl100)
-            .into(thumbIV!!)
+            .into(itemView.item_track_thumb)
+        itemView.setOnClickListener{clickListener(track)}
     }
 
 }

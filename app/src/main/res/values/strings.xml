@@ -2,4 +2,7 @@
     <string name="app_name">Upskilling</string>
     <string name="search_hint">Entrer un nom d\'artiste</string>
     <string name="empty_search_result">Aucun resultat pour <b>%s</b></string>
+    <string name="back_btn">Retour</string>
+    <string name="avatar_content_description">Avatar du titre </string>
+    <string name="search_btn">Search</string>
 </resources>
