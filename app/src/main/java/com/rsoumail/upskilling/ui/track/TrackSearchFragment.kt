@@ -5,16 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.rsoumail.upskilling.R
 import com.rsoumail.upskilling.common.Status
+import com.rsoumail.upskilling.domain.entity.Track
 import com.rsoumail.upskilling.ui.BaseFragment
 import kotlinx.android.synthetic.main.search_fragment.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class TrackSearchFragment : BaseFragment() {
 
-    private val trackViewModel: TrackViewModel by viewModel()
+    private val trackSearchViewModel: TrackSearchViewModel by viewModel()
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -27,11 +29,12 @@ class TrackSearchFragment : BaseFragment() {
 
     override fun initObserver() {
 
-        trackViewModel.results.observe(this, Observer {
+        trackSearchViewModel.results.observe(this, Observer {
             if (it.status == Status.SUCCESS && it.data != null){
+                val trackListener = { track : Track -> trackItemClicked(track) }
                     track_list.apply {
                         layoutManager = LinearLayoutManager(context)
-                        adapter = TrackListAdapter(it.data!!.tracks, this@TrackSearchFragment)
+                        adapter = TrackListAdapter(it.data.tracks, context, trackListener)
                     }
             }
         })
@@ -46,8 +49,12 @@ class TrackSearchFragment : BaseFragment() {
 
     private fun doSearch() {
         val query = input.text.toString()
-        if(!query.isEmpty()) {
-            trackViewModel.setQuery(query)
+        if(query.isNotEmpty()) {
+            trackSearchViewModel.setQuery(query)
         }
+    }
+
+    private fun trackItemClicked(track: Track) {
+        findNavController().navigate(TrackSearchFragmentDirections.showTrack(track.trackName, track.artistName, track.artworkUrl100))
     }
 }
