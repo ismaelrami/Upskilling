@@ -1,6 +1,5 @@
 package com.rsoumail.upskilling.data.remote
 
-import androidx.lifecycle.LiveData
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -13,8 +12,8 @@ interface TrackService{
      *
      * @param [term] Specify the term related to tracks.
      *
-     * @return [TrackSearchResult] response
+     * @return a live data of TrackSearchResponse as ApiResponse
      */
     @GET("/search")
-    fun search(@Query("term") term : String?) : LiveData<ApiResponse<TrackSearchResponse>>
+    suspend fun search(@Query("term") term : String?) : ApiResponse<TrackSearchResponse>
 }

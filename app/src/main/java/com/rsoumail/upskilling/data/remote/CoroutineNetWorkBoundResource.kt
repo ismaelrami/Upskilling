@@ -1,9 +1,15 @@
 package com.rsoumail.upskilling.data.remote
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.liveData
+import androidx.lifecycle.map
 import com.rsoumail.upskilling.AppExecutors
 import com.rsoumail.upskilling.common.Resource
 
@@ -17,37 +23,47 @@ import com.rsoumail.upskilling.common.Resource
  * @param <ResultType>
  * @param <RequestType>
 </RequestType></ResultType> */
-abstract class NetworkBoundResource<ResultType, RequestType>
-@MainThread constructor(private val appExecutors: AppExecutors) {
+abstract class CoroutineNetworkBoundResource<ResultType, RequestType>
+@MainThread constructor() {
 
-    private val result = MediatorLiveData<Resource<ResultType>>()
+    private var result: LiveData<Resource<ResultType>>
 
     init {
-        result.value = Resource.loading(null)
-        @Suppress("LeakingThis")
-        val dbSource = loadFromDb()
-        result.addSource(dbSource) { data ->
-            result.removeSource(dbSource)
-            if (shouldFetch(data)) {
-                fetchFromNetwork(dbSource)
-            } else {
-                result.addSource(dbSource) { newData ->
-                    setValue(Resource.success(newData))
+        result = liveData(Dispatchers.IO) {
+            emit(Resource.loading(null))
+            val source = loadFromDb().map { Resource.success(it) }
+            if (shouldFetch(source.value?.data)) {
+                fetchFromNetWork()
+                when(val response = fetchFromNetWork()) {
+                    is ApiSuccessResponse -> {
+                        saveCallResult(processResponse(response))
+                        emitSource(loadFromDb().map { Resource.success(it) })
+                    }
+                    is ApiEmptyResponse -> {
+                        emitSource(source)
+                    }
+                    is ApiErrorResponse -> {
+                        onFetchFailed()
+                        emit(Resource.error(response.errorMessage, null))
+                        emitSource(source)
+                    }
                 }
+            } else {
+                emitSource(source)
             }
         }
     }
 
-   @MainThread
+    @MainThread
     private fun setValue(newValue: Resource<ResultType>) {
-        if (result.value != newValue) {
+        /*if (result.value != newValue) {
             result.value = newValue
-        }
+        }*/
     }
 
 
-    private fun fetchFromNetwork(dbSource: LiveData<ResultType>) {
-        val apiResponse = createCall()
+    /* private fun fetchFromNetwork(dbSource: LiveData<ResultType>) {
+        return createCall()
         // we re-attach dbSource as a new source, it will dispatch its latest value quickly
         result.addSource(dbSource) { newData ->
             setValue(Resource.loading(newData))
@@ -59,7 +75,7 @@ abstract class NetworkBoundResource<ResultType, RequestType>
                 is ApiSuccessResponse -> {
                     appExecutors.diskIO().execute {
                         saveCallResult(processResponse(response))
-                       appExecutors.mainThread().execute {
+                        appExecutors.mainThread().execute {
                             // we specially request a new live data,
                             // otherwise we will get immediately last cached value,
                             // which may not be updated with latest results received from network.
@@ -70,12 +86,12 @@ abstract class NetworkBoundResource<ResultType, RequestType>
                     }
                 }
                 is ApiEmptyResponse -> {
-                   appExecutors.mainThread().execute {
+                    appExecutors.mainThread().execute {
                         // reload from disk whatever we had
                         result.addSource(loadFromDb()) { newData ->
                             setValue(Resource.success(newData))
                         }
-                     }
+                    }
                 }
                 is ApiErrorResponse -> {
                     onFetchFailed()
@@ -85,11 +101,11 @@ abstract class NetworkBoundResource<ResultType, RequestType>
                 }
             }
         }
-    }
+    }*/
 
     protected open fun onFetchFailed() {}
 
-    fun asLiveData() = result as LiveData<Resource<ResultType>>
+    fun asLiveData() = result
 
     @WorkerThread
     protected open fun processResponse(response: ApiSuccessResponse<RequestType>) = response.body
@@ -100,9 +116,9 @@ abstract class NetworkBoundResource<ResultType, RequestType>
     @MainThread
     protected abstract fun shouldFetch(data: ResultType?): Boolean
 
-   @MainThread
+    @MainThread
     protected abstract fun loadFromDb(): LiveData<ResultType>
 
-   @MainThread
-    protected abstract fun createCall(): LiveData<ApiResponse<RequestType>>
+    @MainThread
+    protected abstract suspend fun fetchFromNetWork(): ApiResponse<RequestType>
 }
