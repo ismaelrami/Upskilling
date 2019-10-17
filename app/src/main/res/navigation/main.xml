@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/main"
+        app:startDestination="@id/trackSearchFragment">
+
+    <fragment
+            android:id="@+id/trackSearchFragment"
+            android:name="com.rsoumail.upskilling.ui.track.TrackSearchFragment"
+            android:label="TrackSearchFragment" >
+        <action
+                android:id="@+id/showTrack"
+                app:destination="@id/trackFragment"
+                app:enterAnim="@anim/nav_default_enter_anim"
+                app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+    <fragment
+            android:id="@+id/trackFragment"
+            android:name="com.rsoumail.upskilling.ui.track.TrackFragment"
+            android:label="TrackFragment" >
+        <argument
+                android:name="trackTitle"
+                app:argType="string" />
+        <argument
+                android:name="trackArstist"
+                app:argType="string" />
+        <argument
+                android:name="trackThumb"
+                app:argType="string" />
+
+        <action
+                android:id="@+id/backToSearch"
+                app:destination="@id/trackSearchFragment"
+                app:popUpTo="@id/trackSearchFragment"
+                app:popUpToInclusive="true"/>
+    </fragment>
+</navigation>
