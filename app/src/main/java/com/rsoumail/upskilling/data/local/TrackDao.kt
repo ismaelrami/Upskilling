@@ -13,9 +13,9 @@ import androidx.room.Query
 abstract class TrackDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insert(result: TrackSearchResult)
+    abstract suspend fun insert(result: TrackSearchResult)
 
     @Query("SELECT * FROM TrackSearchResult WHERE `query`  = :query")
-    abstract fun search(query: String): LiveData<TrackSearchResult>
+    abstract suspend fun search(query: String): TrackSearchResult
 
 }

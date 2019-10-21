@@ -1,6 +1,7 @@
 package com.rsoumail.upskilling.ui.track
 
 import android.os.Bundle
+import android.util.Log.i
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,6 +29,20 @@ class TrackSearchFragment : BaseFragment() {
     }
 
     override fun initObserver() {
+
+
+
+        /*with(trackSearchViewModel) {
+            results.observe(this@TrackSearchFragment, Observer {
+                if (it.status == Status.SUCCESS && it.data != null){
+                    val trackListener = { track : Track -> trackItemClicked(track) }
+                    track_list.apply {
+                        layoutManager = LinearLayoutManager(context)
+                        adapter = TrackListAdapter(it.data.tracks, context, trackListener)
+                    }
+                }
+            })
+        }*/
 
         trackSearchViewModel.results.observe(this, Observer {
             if (it.status == Status.SUCCESS && it.data != null){
