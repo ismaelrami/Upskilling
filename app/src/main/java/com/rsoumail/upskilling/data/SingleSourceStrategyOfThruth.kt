@@ -4,11 +4,38 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import com.rsoumail.upskilling.common.Resource
+import com.rsoumail.upskilling.common.Status
 import com.rsoumail.upskilling.data.remote.ApiEmptyResponse
 import com.rsoumail.upskilling.data.remote.ApiErrorResponse
 import com.rsoumail.upskilling.data.remote.ApiResponse
 import com.rsoumail.upskilling.data.remote.ApiSuccessResponse
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
+
+suspend fun <T, A> result(databaseQuery: suspend () -> T,
+                          shouldFetchData: (T?) -> Boolean,
+                          netWorkCall: suspend () -> Resource<A>,
+                          saveCallResult: suspend (A) -> Unit,
+                          processResponse: (Resource<A>) -> A): Resource<T> {
+    val fromDb = databaseQuery()
+    var result : Resource<T> = Resource.success(fromDb)
+    if(shouldFetchData(fromDb)){
+        val response = netWorkCall()
+        if (response.status == Status.SUCCESS && response.data != null) {
+            saveCallResult(processResponse(response))
+            return Resource.success(databaseQuery())
+        }
+        if (response.status == Status.SUCCESS && response.data == null){
+            return Resource.success(fromDb)
+        }
+
+        if (response.status == Status.ERROR) {
+            return Resource.error(response.message!!, fromDb)
+        }
+    }
+
+    return result
+}
+
 
 fun <T, A> resultLiveData(databaseQuery: () -> LiveData<T>,
                           shouldFetchData: (LiveData<Resource<T>>) -> Boolean,
